@@ -217,7 +217,69 @@ def tenant_by_id(id):
     
 
 
-# /leases -> Read, Post(Create) -> RESTful
+# /leases -> Read, Post(Create) RESTFUL
+
+class All_Leases(Resource):
+    
+    def get(self):
+        try:
+            all_leases = [l.to_dict() for l in Lease.query.all()]
+        except:
+            response_body = {
+                "message": "404 - Unable to Locate any leases!"
+            }
+            return make_response(response_body, 404)
+        else:
+            return make_response(all_leases, 200)
+    def post(self):
+        try:
+            newLease = Lease(
+                rent = request.get_json()['rent'],
+                apartment_id = request.get_json()['apartment_id'],
+                tenant_id = request.get_json()['tenant_id']
+            )
+        except:
+            response_body = {
+                "message":"Unable to make Lease Instance, please check validations"
+            }
+            return make_response(response_body, 409)
+        else:
+            try:
+                db.session.add(newLease)
+                db.session.commit()
+            except:
+                db.session.rollback()
+                response_body = {
+                    "message": "Unable to add to Database, please check constraints"
+                }
+                return make_response(response_body, 409)
+            else:
+                return make_response(newLease.to_dict(), 201)                
+
+
+api.add_resource(All_Leases, "/leases")
+
+# /leases/<int:id> -> DELETE -> non-RESTful
+
+@app.route('/leases/<int:id>', methods = ["GET","DELETE"])
+def leases_by_id(id):
+    try:
+        selected_lease = Lease.query.filter(Lease.id == id).one()
+    except:
+        response_body = {
+            "message":"404 - Lease not found"
+        }
+        return make_response(response_body, 404)
+    else:
+        if request.method == "DELETE":
+            
+            db.session.delete(selected_lease)
+            db.session.commit()
+
+            return make_response({}, 200)
+        elif request.method == "GET":
+            
+            return make_response(selected_lease.to_dict(), 200)
 
 
 
