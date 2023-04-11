@@ -9,20 +9,24 @@ db = SQLAlchemy()
 class Apartment( db.Model, SerializerMixin ):
     __tablename__ = 'apartments'
 
+    serialize_rules = ('-leases.apartment',)
+
     id = db.Column( db.Integer, primary_key=True )
     number = db.Column( db.Integer )
 
-    leases = db.relationship( 'Lease', backref='Apartment' )
+    leases = db.relationship( 'Lease', backref='apartment' )
 
 
 class Tenant( db.Model, SerializerMixin ):
     __tablename__ = 'tenants'
 
+    serialize_rules = ('-leases.tenant',)
+
     id = db.Column( db.Integer, primary_key=True )
     name = db.Column( db.String, nullable=False )
     age = db.Column( db.Integer)
 
-    leases = db.relationship( 'Lease', backref='Tenant' )
+    leases = db.relationship( 'Lease', backref='tenant' )
 
     @validates('name')
     def name_validation(self, key, attr):
@@ -38,11 +42,11 @@ class Tenant( db.Model, SerializerMixin ):
         else:
             raise ValueError('Please enter an age above 17!')
         
-    
-
 
 class Lease( db.Model, SerializerMixin ):
     __tablename__ = 'leases'
+
+    serialize_rules = ('-tenant.leases','-apartment.leases')
 
     id = db.Column( db.Integer, primary_key=True )
     rent = db.Column( db.Integer )
