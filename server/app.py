@@ -69,7 +69,57 @@ def apartments():
             else:
                 return make_response(newApartment.to_dict(), 200)
             
-# /apartments/<int:id> -> Patch(Update), Delete
+# /apartments/<int:id> -> Patch(Update), Delete -> RESTful
+
+class Apartment_by_id(Resource):
+
+    def get(self, id):
+        try:
+            apartment = Apartment.query.filter(Apartment.id == id).one()
+        except:
+            response_body = {
+                "message": "404 - Apartment not found"
+            }
+            return make_response(response_body,404)
+        else:
+            return make_response(apartment.to_dict(), 200)
+
+    def patch(self, id):
+
+        try:
+            apartment = Apartment.query.filter(Apartment.id == id).one()
+
+            for attr in request.get_json():
+                setattr(apartment, attr, request.get_json()[attr] )
+
+        except:
+            response_body = {
+                "message": "404 - Apartment not found"
+            }
+            return make_response(response_body,404)
+        else:
+            db.session.add(apartment)
+            db.session.commit()
+
+            return make_response(apartment.to_dict(), 200)
+
+    def delete(self, id):
+
+        try:
+            apartment = Apartment.query.filter(Apartment.id == id).one()
+
+        except:
+            response_body = {
+                "message": "404 - Apartment not found"
+            }
+            return make_response(response_body,404)
+        else:
+            db.session.delete(apartment)
+            db.session.commit()
+
+            return make_response({}, 200)
+
+api.add_resource(Apartment_by_id, "/apartments/<int:id>")
 
 # /tenants -> Read, Post(Create) - RESTful
 # /tenants/<int:id> -> Patch(Update), Delete -> Non-RESTful
