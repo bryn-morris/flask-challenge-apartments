@@ -15,16 +15,30 @@ class Apartment( db.Model, SerializerMixin ):
     leases = db.relationship( 'Lease', backref='Apartment' )
 
 
-
 class Tenant( db.Model, SerializerMixin ):
     __tablename__ = 'tenants'
 
     id = db.Column( db.Integer, primary_key=True )
     name = db.Column( db.String, nullable=False )
-    age = db.Column( db.Integer )
+    age = db.Column( db.Integer)
 
     leases = db.relationship( 'Lease', backref='Tenant' )
 
+    @validates('name')
+    def name_validation(self, key, attr):
+        if not attr:
+            raise NameError('A Name must exist!')
+        else:
+            return attr
+    
+    @validates('age')
+    def age_validation(self, key, attr):
+        if attr >= 18:
+            return attr
+        else:
+            raise ValueError('Please enter an age above 17!')
+        
+    
 
 
 class Lease( db.Model, SerializerMixin ):
