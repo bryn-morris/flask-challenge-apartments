@@ -180,10 +180,45 @@ api.add_resource(All_Tenants, "/tenants")
 
 # /tenants/<int:id> -> Patch(Update), Delete -> Non-RESTful
 
+@app.route('/tenants/<int:id>', methods = ['GET', 'PATCH', 'DELETE'])
+def tenant_by_id(id):    
+    try:
+        selected_tenant = Tenant.query.filter(Tenant.id == id).one()
+    except:
+        response_body = {
+            'message': '404, tenant not found '
+        }
+        return make_response(response_body, 404)
+    else:
+        if request.method == "GET":
+            
+            return make_response(selected_tenant.to_dict(), 200)
+
+        elif request.method == "PATCH":
+            try:
+                for key in request.get_json():
+                    setattr(selected_tenant, key, request.get_json()[key])
+                db.session.add(selected_tenant)
+                db.session.commit()
+            except:
+                response_body = {
+                    "message": "Unable to add to Database, please check constraints! :]"
+                }
+                return make_response(response_body, 304)
+            else:
+                return make_response(selected_tenant.to_dict(), 200)
+
+        elif request.method == 'DELETE':
+            
+            db.session.delete(selected_tenant)
+            db.session.commit()
+
+            return make_response({}, 200)
+    
 
 
 # /leases -> Read, Post(Create) -> RESTful
-# /tenants/<int:id> -> Delete -> Non-RESTful
+
 
 
 if __name__ == '__main__':
