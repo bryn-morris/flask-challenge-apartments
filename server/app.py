@@ -55,7 +55,7 @@ def apartments():
             response_body = {
                 "Message": "Unable to create Apartment Instance"
             }
-            return make_response(response_body, 404)
+            return make_response(response_body, 409)
         else:
             try:
                 db.session.add(newApartment)
@@ -65,9 +65,9 @@ def apartments():
                 response_body = {
                 "Message": "Unable to add to Database"
                 }
-                return make_response(response_body, 404)
+                return make_response(response_body, 409)
             else:
-                return make_response(newApartment.to_dict(), 200)
+                return make_response(newApartment.to_dict(), 201)
             
 # /apartments/<int:id> -> Patch(Update), Delete -> RESTful
 
@@ -122,7 +122,65 @@ class Apartment_by_id(Resource):
 api.add_resource(Apartment_by_id, "/apartments/<int:id>")
 
 # /tenants -> Read, Post(Create) - RESTful
+
+class All_Tenants(Resource):
+    
+    def get(self):
+
+        try:
+            all_tenants = [t.to_dict() for t in Tenant.query.all()]
+        except:
+            response_body = {
+                "Message": "Error in locating All_Tenants!"
+            }
+            return make_response(response_body, 404)
+        else:
+            
+            return make_response(all_tenants, 200)    
+
+    def post(self):
+        
+        try:
+
+            # This isn't working? May be a Postman Issue
+            # newTenant = Tenant(
+            #     name = request.form['name'],
+            #     age = request.form['age'],
+            # )
+
+            newTenant = Tenant(
+                name = request.get_json()['name'],
+                age = request.get_json()['age']
+            )
+
+        except:
+            
+            response_body = {
+                "message": "Unable to create Tenant! Please Check Validations"
+            }
+            return make_response(response_body, 409)
+        
+        else:
+            try:
+                db.session.add(newTenant)
+                db.session.commit()
+            except:
+                db.session.rollback()
+
+                response_body = {
+                    "message": "Unable to add to database, please check to match constraints!"
+                }
+
+                return make_response(response_body, 409)
+            else:
+                
+                return make_response(newTenant.to_dict(), 201)
+
+api.add_resource(All_Tenants, "/tenants")
+
 # /tenants/<int:id> -> Patch(Update), Delete -> Non-RESTful
+
+
 
 # /leases -> Read, Post(Create) -> RESTful
 # /tenants/<int:id> -> Delete -> Non-RESTful
