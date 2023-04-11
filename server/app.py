@@ -11,6 +11,15 @@ app.config[ 'SQLALCHEMY_TRACK_MODIFICATIONS' ] = False
 migrate = Migrate( app, db )
 db.init_app( app )
 
+# /apartments -> Read, Post(Create) -> Non-RESTful
+# /apartments/<int:id> -> Patch(Update), Delete
+
+# /tenants -> Read, Post(Create) - RESTful
+# /tenants/<int:id> -> Patch(Update), Delete -> Non-RESTful
+
+# /leases -> Read, Post(Create) -> RESTful
+# /tenants/<int:id> -> Delete -> Non-RESTful
+
 
 if __name__ == '__main__':
     app.run( port = 3000, debug = True )
